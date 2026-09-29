@@ -127,6 +127,24 @@ Quick summary of each:
 - `glossary.md` — a bilingual technical glossary
 - `Sandooq-Report.pdf` — the project report for SAIF
 
+## What this project needs next
+
+Ordered by importance. The first three are the difference between a demo and a real product.
+
+1. **One running instance, properly.** Installed on the server, reached over HTTPS with a real domain, and with a working demo account. Everything else is theory until this exists.
+2. **A second node.** Federation is the central claim of the project. Two nodes that can see each other and share one file turn the map from a drawing into a fact.
+3. **A minimum host flow.** A small script or app that lets someone plug in a drive, register capacity, accept encrypted writes, and see a usage report. The marketplace is the heart of the idea, so it needs a working minimum, not a plan.
+4. **A one command installer.** Docker Compose or a shell script so anyone can reproduce the setup on their own machine. This is what turns one person's server into a project other people can run, and it is also what lets a judge check the work.
+5. **Backups and a health check.** A second copy of the data and a simple uptime page, so a live demo cannot fail on stage.
+6. **A thirty second privacy proof.** A rehearsed sequence: upload a file, show the storage, show the `.c9r` names, decrypt it again. Same result every time, without improvising.
+7. **Real numbers.** Cost per gigabyte, host payout, and the break even point. The figures in this README are illustrative, and judges will ask for the real ones.
+8. **Arabic onboarding.** The first screen a Saudi user sees should be in Arabic, not English with a translation underneath.
+9. **A privacy policy and terms of use.** Short, plain and honest, written with PDPL in mind. It also protects the project legally.
+10. **Three real pilot users.** Not friends who say it is nice, but people who upload something real and come back a week later.
+11. **A two minute demo video**, and a rehearsed three minute pitch, with the live demo also practised offline.
+
+**What it does not need right now:** more slides, more ideas, or a bigger network. It needs one working instance, one second node, and one host earning their first riyal.
+
 ## Status
 
 Proof of concept. A single node runs with HTTPS, accounts, quotas and an encrypted vault. Next: a federation test with two nodes, then the host earning demo.
