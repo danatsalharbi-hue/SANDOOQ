@@ -1,18 +1,19 @@
 # SETUP.md — How to build Sandooq, step by step
 
-This guide has three parts:
+This guide has four parts:
 
 1. Turn a laptop into a server
-2. Set up the server and reach it from the phone
-3. Add encryption on the phone
+2. Set up the public server and reach it from the phone
+3. Add Tailscale, the secure private network
+4. Add encryption on the phone
 
-You do not need all three to start. Part 1 is the simplest, Part 2 is the real product, Part 3 is what makes it private.
+Part 1 is the simplest. Part 2 is the real product. Part 3 is what makes it secure and usable from anywhere. Part 4 is what makes it private.
 
 ---
 
 ## Part 1. Turn your laptop into a server (Mac)
 
-This is the fastest way to see the idea working. It only works on your own Wi-Fi.
+This is the fastest way to see the idea working. On its own it only works on your own Wi-Fi. Part 3 fixes that.
 
 1. **Make a folder to share.** Open Finder and create a folder in your home folder, for example `Cloud`.
 2. **Open File Sharing.** Apple menu, System Settings, General, Sharing, then turn **File Sharing** on.
@@ -29,11 +30,11 @@ This is the fastest way to see the idea working. It only works on your own Wi-Fi
 
 **Result:** the laptop is now a storage server on your Wi-Fi.
 
-**Why this is only step one:** an address like `192.168.1.11` is private. Nobody outside your Wi-Fi can reach it, and many Saudi home connections sit behind CGNAT, which means you do not even have your own public address. That is why the real product runs on a public server.
+**Why this is only step one:** an address like `192.168.1.11` is private. Nobody outside your Wi-Fi can reach it, and many Saudi home connections sit behind CGNAT, which means you do not even have your own public address. Do not try to fix that by opening ports on the router. Part 3 fixes it properly.
 
 ---
 
-## Part 2. Set up the server and reach it from your phone
+## Part 2. Set up the public server and reach it from your phone
 
 This is the version that works from anywhere in Saudi Arabia.
 
@@ -72,13 +73,12 @@ Copy that line and send it to the server owner. **Never send the private key**, 
    - **Port:** `52156`
    - **Username:** your username
    - **Key:** select `my-iphone` (switch authentication from Password to Key)
-5. Tap **Save**, then tap the host to connect.
-6. The first time it asks about a fingerprint. Type **yes** once.
-7. You should land on a prompt like `dana@server:~$`. Type `pwd` and press Enter to confirm you are really on the server.
+5. Tap **Save**, then tap the host to connect. The first time it asks about a fingerprint, type **yes** once.
+6. You should land on a prompt like `dana@server:~$`. Type `pwd` and press Enter.
 
 ### 2.4 Install the cloud platform on the server
 
-This is the software that turns a plain server into a cloud with accounts, quotas and apps. On Ubuntu or Debian:
+On Ubuntu or Debian:
 
 ```
 sudo apt update
@@ -93,13 +93,11 @@ sudo nextcloud.manual-install your-admin-name 'a-strong-password'
 sudo nextcloud.enable-https self-signed
 ```
 
-Open `https://` plus your server IP in a browser. You will get a certificate warning with `self-signed`, that is expected. The smooth version is a domain name plus:
+Open `https://` plus your server IP in a browser. The certificate warning is expected with `self-signed`. The smooth version needs a domain name and ports **80** and **443** open:
 
 ```
 sudo nextcloud.enable-https lets-encrypt
 ```
-
-Your server must have ports **80** and **443** open for this, and a domain name pointing at it.
 
 ### 2.5 Make accounts for other people
 
@@ -107,26 +105,104 @@ In the Nextcloud admin panel, go to **Users** and create one account per person,
 
 ### 2.6 Use it from the phone
 
-- Install the **Nextcloud** app (free) on the phone and log in with the account you created. Files sync automatically.
-- On the **iPhone Files app**: it speaks **SMB** only. It cannot do SSH or SFTP directly. Two options:
-  - **SMB:** if the server runs Samba, connect with Files, then **Connect to Server**, then type `smb://` plus the address.
-  - **SFTP:** install a file provider app such as **Secure ShellFish** or **Owlfiles**, add an SFTP connection with the server IP, port `52156`, your username and your key. It then appears as a folder inside the Files app.
+- Install the **Nextcloud** app (free) and log in with the account you created. Files sync automatically.
+- The **iPhone Files app** speaks **SMB** only; it cannot do SSH or SFTP directly. Two options:
+  - **SMB:** if the server runs Samba, use Files, then **Connect to Server**, then `smb://` plus the address.
+  - **SFTP:** install a file provider app such as **Secure ShellFish** or **Owlfiles**, add an SFTP connection with the server IP, port `52156`, your username and your key. It then appears as a folder inside Files.
 
-### 2.7 Optional, access without opening ports
+---
 
-Install **Tailscale** on the server, the phone and the laptop, and sign in with the same account:
+## Part 3. Add Tailscale, the secure private network
+
+This is the part that makes the project secure and removes the "only on my Wi-Fi" limitation. Tailscale builds a private encrypted network, called a **tailnet**, between your own devices using WireGuard. Each device gets a stable `100.x.y.z` address and must be authenticated to join.
+
+### 3.1 Create the account
+
+Go to **tailscale.com** and sign up (Google, GitHub, Microsoft or email). Use the **same account** on every device, because that account defines the network. The free tier covers roughly three users and one hundred devices, which is enough for a pilot.
+
+### 3.2 Install it on the public server
+
+Connect with Termius and run:
 
 ```
 curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up
+```
+
+The second command prints a link. Open it, log in, and **approve** the device. Then find the server's private address:
+
+```
 tailscale ip -4
 ```
 
-Now every device can reach the server at its `100.x.y.z` address from anywhere, and you can close the public SSH port if you want. Tailscale is private, not public.
+You will get something like `100.101.102.103`. Write it down.
+
+### 3.3 Install it on the private node (the Mac) and the phone
+
+- **Mac:** install Tailscale from tailscale.com/download or the Mac App Store, sign in, and turn it on. Then also run the same two commands in Terminal if you want it available to command line tools.
+- **iPhone:** install **Tailscale** from the App Store, sign in with the same account, and turn the switch on.
+
+Now open Tailscale on the phone: all three devices should appear on the same network.
+
+### 3.4 Reach the private node from anywhere
+
+Before Tailscale, the home Mac was reachable only from the same Wi-Fi. Now use its `100.x.y.z` address instead of `192.168.x.x`:
+
+- **SSH:** in Termius, create a host with the `100.x.y.z` address of the Mac, port `22` (Remote Login must be on), and your Mac username.
+- **Files app:** connect to `smb://100.x.y.z` and log in with your Mac account.
+
+This works on mobile data, from another city, on a different Wi-Fi, with **no ports opened on the home router**.
+
+### 3.5 Close the public SSH port on the server
+
+This is the security win. Until now, port `52156` was exposed to the entire internet, where scanners try passwords constantly. Once you can reach the server over the tailnet:
+
+1. Confirm you can SSH to the server using its `100.x.y.z` address.
+2. Only then, close the public SSH port in the host firewall or control panel.
+
+After this, the public internet can reach **only HTTPS on port 443**, which is what real users need. Administration, federation and backups all run inside the tailnet.
+
+Optional trick: Tailscale has its own SSH, so you can skip key management for admin access:
+
+```
+sudo tailscale up --ssh
+```
+
+Test it before you rely on it.
+
+### 3.6 Access control, briefly
+
+In the Tailscale admin console you can:
+
+- **approve** or remove devices,
+- define **ACLs** so a device can only reach what it needs,
+- see which device is connected and when.
+
+For a project like this, keep it simple: operators reach everything, testers reach only the service port.
+
+### 3.7 Optional, a public link for a demo day
+
+For SAIF demo day, if you want a public `https://` link without opening ports:
+
+1. In the admin console, go to **DNS** and turn on **HTTPS Certificates**.
+2. On the server:
+   ```
+   sudo tailscale funnel 443 on
+   ```
+   It prints a public link such as `https://your-server.your-tailnet.ts.net`.
+
+### 3.8 Troubleshooting
+
+- `sudo tailscale status` shows your devices and their connection state.
+- `sudo systemctl status tailscaled` tells you if the service is running.
+- `sudo tailscale up --reset` makes it ask you to log in again.
+- If a device shows offline, make sure the Tailscale app is running on it.
+
+**Honest limit:** Tailscale is private, not public. Real users still reach the public node over HTTPS. The tailnet is for operators, nodes and invited testers.
 
 ---
 
-## Part 3. Add encryption on the phone (Cryptomator)
+## Part 4. Add encryption on the phone (Cryptomator)
 
 This is the part that makes the storage unable to read your files.
 
@@ -140,34 +216,32 @@ This is the part that makes the storage unable to read your files.
 8. **Verify it.** On the laptop or server, open the folder that holds the vault. You should see scrambled names like `dirid.c9r` and files ending in `.c9r`. No images, no readable filenames.
 9. **Test first.** Use two or three unimportant files before you trust it with anything important.
 
-**The rule to remember:** the vault protects your files from the storage and from other people. It does not hide them from you, because you hold the key. If you can open your own vault, that is normal.
+**The rule to remember:** the vault protects your files from the storage and from other people. It does not hide them from you, because you hold the key.
 
 **Warning:** if you lose the vault password, the files are gone forever. Nobody can reset it, not even the server owner.
 
 ---
 
-## The whole process in one picture
+## The whole system in one picture
 
 ```
-Laptop or phone
-   encrypts the file with your key
-        |
-        v
-Encrypted tunnel (HTTPS / SSH / TLS)
-        |
-        v
-Sandooq node (accounts, quotas, no key)
-        |
-        v
-Storage (unreadable encrypted blocks)
-        |
-        v
-Only your device can decrypt it again
+        Tailscale tailnet  (WireGuard, encrypted, device authenticated)
+
+  Public node  <-------------->  Private node  <-------------->  Phone
+  public IP, HTTPS for users      Mac at home, no ports open      admin + own files
+  SSH closed to the internet      100.x.y.z address only          100.x.y.z address only
+
+        The internet sees:  HTTPS on 443, and nothing else
+
+  File path:
+  device -> encrypt with your key -> encrypted tunnel -> node -> unreadable blocks
+  -> only your device can decrypt it again
 ```
 
-**Supply side:** someone with spare storage installs the host app, declares capacity, passes a readiness check, goes live in the node list, and earns a monthly payout for the space actually used.
+**Two different layers of protection, and both are needed:**
 
-**Demand side:** a user signs up, installs the app, picks a node by price, latency and trust, creates a vault, and uploads.
+- **Tailscale** protects the network path and reduces exposure. It keeps attackers off the administration ports and lets private nodes work from anywhere.
+- **Cryptomator** protects the contents. Even the operator, even a stolen disk, sees nothing readable.
 
 ---
 
@@ -175,4 +249,5 @@ Only your device can decrypt it again
 
 - A host can still see metadata: how many files, roughly how big, and when you were online.
 - Anyone who controls a disk can delete data. Encryption stops reading, not deletion.
+- Tailscale is private, not public, and the free tier has device limits.
 - Cryptomator's iPhone app over an SMB mount has known reliability issues. If it misbehaves, point the vault at a different storage connection, such as SFTP.
