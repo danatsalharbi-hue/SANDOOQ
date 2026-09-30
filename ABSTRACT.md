@@ -1,47 +1,41 @@
-# Abstract — Sandooq
+# Abstract — SANDOOQ
 
-**Sovereign, end to end encrypted cloud storage, owned by the people who use it.**
+**Sovereign, end-to-end encrypted cloud storage, owned by Saudis who use it.**
 
-**Author:** Dana Alharbi · **Programme:** SAIF · **Country:** Kingdom of Saudi Arabia
+**Author:** Dana Turki Alharbi · Grade 9, Numou Education Center — Creativity Oasis, Alkhobar · **Programme:** SAIF · **Country:** Kingdom of Saudi Arabia
 
 ---
 
-## Abstract
+Your photos are sitting in a foreign data centre right now. Your device runs out of space, and the only two buttons on screen are *delete* or *pay*. That message is not an accident: it is a business model, and it has become the default way the world stores its memories.
 
-Cloud storage has become a permanent rental. Users pay every month for space they never own, their files are copied to data centres in other countries, and in most services the provider holds the encryption keys, so privacy depends on a policy rather than on mathematics.
+SANDOOQ is a Saudi-based, self-hosted cloud, very similar to built-in iCloud — except the server is yours. Files are encrypted end-to-end with **Cryptomator (AES-256)**, and nodes stay private over **Tailscale** and SSH, so even the operator cannot peek. Privacy you can prove, seamless backup, private file sharing on any device, extra storage for free. Decentralized by design, with a potential business model that lets anyone rent out spare space and earn. Your cloud. Your rules.
 
-Sandooq is a self hosted, end to end encrypted cloud storage platform built inside Saudi Arabia, combined with a marketplace that turns unused storage into income. Two ideas hold it together:
+Two ideas hold it together:
 
 1. **Privacy by architecture.** Files are encrypted on the user's own device before they move anywhere, so the operator, the host, and anyone who reaches the disk can only ever see unreadable encrypted blocks.
-2. **Storage as local infrastructure.** Anyone with unused capacity, an old laptop, an external drive or a NAS, can run a node and earn a monthly payout for the space they are not using.
+2. **Storage as local infrastructure.** Anyone with unused capacity — an old laptop, an external drive, a NAS — can run a node and earn a monthly payout for the space they are not using.
 
-## The two node architecture, and why Tailscale matters
+## The two-node architecture, and why Tailscale matters
 
-The current proof of concept runs on **two nodes**:
+The proof of concept runs on **two nodes**: a **public node** (a rented server with a public IP, serving real users over HTTPS) and a **private node** (a Mac at home with no public address). Exposing a public server means constant scanning; leaving the private node inside the home network means it is reachable from only one place.
 
-| Node | Location | Exposure |
-|---|---|---|
-| **Public node** | A rented server with a public IP address | Reachable from anywhere over HTTPS, which is what real users need |
-| **Private node** | A Mac at home | No public address, previously reachable only when a phone was on the same Wi-Fi |
+**Tailscale resolves both at once.** It builds a private, encrypted **tailnet** between the project's devices using WireGuard. Each device gets a stable `100.x.y.z` address and must authenticate before joining. With both nodes inside the tailnet:
 
-Exposing a public server to the internet means constant scanning, credential attacks and a large attack surface. Leaving the private node inside the home network means it can only be used from one place.
+- The **public node's SSH access is closed to the whole internet**; administration happens only over the tailnet. The public internet sees one thing: HTTPS on port 443.
+- The **private node becomes reachable from anywhere** with no ports opened on the home router.
+- The two nodes can **federate and back each other up** over the tailnet, turning decentralisation from a drawing into a working mesh.
+- Testers can be invited to a private beta **with no public exposure**.
 
-**Tailscale resolves both problems at once.** It builds a private, encrypted network, called a tailnet, between the project's own devices using WireGuard. Each device receives a stable `100.x.y.z` address and is authenticated before it can join. With both nodes inside the tailnet:
-
-- The **public node's SSH access can be closed to the whole internet**, so administration happens only over the encrypted tailnet. The public internet then sees one thing only: HTTPS on port 443 for real users.
-- The **private node becomes reachable from anywhere**, from the phone or the server, without opening a single port on the home router and without a public address. It stops being a Wi-Fi only experiment and becomes part of the network.
-- The two nodes can **federate and back each other up over the tailnet**, turning the decentralisation claim from a drawing into a working two node mesh.
-- Testers can be invited into a private beta **without exposing any service publicly**.
-
-Tailscale does not replace end to end encryption. Cryptomator protects the contents of files from everyone, including the operator. Tailscale protects the network path and removes unnecessary exposure. The two layers are complementary, and together they give the project a security posture that is defensible in front of a technical judge.
+Tailscale does not replace end-to-end encryption. Cryptomator protects file contents from everyone, including the operator. Tailscale protects the network path and removes unnecessary exposure. The two layers are complementary.
 
 ## Honest limits
 
-- Tailscale is **private, not public**. Regular users still reach the project through HTTPS on the public node; the tailnet is for operators, nodes and invited testers. Tailscale Funnel can publish a service publicly for a demonstration.
-- The free tier covers roughly three users and one hundred devices, which fits a pilot of this size.
+- Tailscale is **private, not public**. Users reach the service over HTTPS on the public node; the tailnet is for operators, nodes and invited testers.
 - Metadata remains visible to a host, and a host can always delete data. Encryption prevents reading, not deletion.
 - A private network reduces exposure; it does not remove the need for updates, backups and access control.
 
 ## Conclusion
 
-Sandooq is a working proof of concept for a storage model that is sovereign, verifiable and economically local: encrypted on the device, hosted in the Kingdom, supplied by the community, and administered over a private network instead of an exposed one. Its next milestones are a second federated node, a minimum host earning flow, and a one command installer so the system can be reproduced by anyone.
+SANDOOQ is a working proof of concept for a storage model that is sovereign, verifiable and economically local: encrypted on the device, hosted in the Kingdom, supplied by the community, and administered over a private network instead of an exposed one. Its next milestones are a second federated node, a minimum host-earning flow, and a one-command installer so anyone can reproduce the system.
+
+*SANDOOQ. Storage you own. Privacy you can verify. Income that stays in the Kingdom.*
